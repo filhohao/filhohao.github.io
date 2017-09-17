@@ -9,4 +9,4 @@ sudo apt-get remove mathematica-fonts wolfram-engine scratch sonic-pi nodered or
 echo CREATE USER 'BTCUSER'@'%' IDENTIFIED BY 'BTCPASS';
 echo GRANT ALL ON BITCOIN.* TO 'BTCUSER'@'%';
 echo sudo nano 50-server.cnf - CHANGE BIND-ADDRESS
-echo crontab git add * && git commit -m "latest update" && git push https://filhohao:Siena2009@github.com/filhohao/Reports.git master
+echo crontab git add * && git commit -m "latest update" && git push https://filhohao:S******9@github.com/filhohao/Reports.git master
