@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html style="background-color: #ffffff">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="description"
+          content="Random name picker which lets you put names in a wheel and
+                   spin it to get a random winner. You can paste in names
+                   yourself or import people from Twitter and Google+ who have
+                   posted with your hashtag. Perfect for raffles!">
+    <title>Wheel of Names</title>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link rel="stylesheet" href="material-components-web.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/howler/2.0.7/howler.core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <script src="audio.js"></script>
+    <script src="ImageCache.js"></script>
+    <script src="Wheel.js"></script>
+    <script src="TextBox.js"></script>
+    <script src="ArrayUtils.js"></script>
+    <script src="SocialMediaGateway.js"></script>
+    <script src="VisitorCounter.js"></script>
+    <script src="FullScreen.js"></script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-73612537-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    <style>
+      @media (max-width: 600px) {
+        .hidden-on-small-screens {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="mdc-typography">
+
+    <header class="mdc-toolbar">
+      <div class="mdc-toolbar__row">
+        <section class="mdc-toolbar__section mdc-toolbar__section--align-start">
+          <span class="mdc-toolbar__title hidden-on-small-screens">bit.ly/WheelOfNames</span>
+        </section>
+        <section class="mdc-toolbar__section">
+          <div id="welcomeMessage" class="hidden-on-small-screens"></div>
+        </section>
+        <section class="mdc-toolbar__section mdc-toolbar__section--align-end">
+          <a href="#" id="socialMediaButton" class="mdc-toolbar__icon"
+             title="Add people who tweeted your hashtag" alt="Add people who tweeted your hashtag">
+             <img height="23" src="Twitter_Social_Icon_Circle_White.png">
+          </a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSf4uHdyUJVctmMgrmgKFjTzcl9n13r1MfVJpo9IZ_NEVAc6Aw/viewform"
+             target=_new class="material-icons mdc-toolbar__icon"
+             title="Give feedback" alt="Give feedback">
+             chat
+          </a>
+          <a href="#" id="saveButton" class="material-icons mdc-toolbar__icon"
+            title="Save name list" alt="Save name list">
+            save
+          </a>
+          <a href="#" id="fullscreenButton" class="material-icons mdc-toolbar__icon"
+            title="Toggle fullscreen mode" alt="Toggle fullscreen mode">
+            fullscreen
+          </a>
+          <a href="#" id="aboutButton" class="material-icons mdc-toolbar__icon"
+            title="About this app" alt="About this app">
+            info_outline
+          </a>
+        </section>
+      </div>
+    </header>
+
+    <div class="mdc-layout-grid">
+      <div class="mdc-layout-grid__inner">
+          <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
+            <canvas id="myCanvas" style="width:100%;height:auto" width="700" height="700"></canvas>
+          </div>
+          <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-4">
+            <div class="mdc-text-field mdc-text-field--textarea mdc-text-field--upgraded">
+              <textarea id="names" class="mdc-text-field__input" rows="28" cols="30"></textarea>
+              <label for="names" class="mdc-floating-label mdc-floating-label--float-above">Names, one per line</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside id="winnerModal"
+            class="mdc-dialog"
+            role="alertdialog">
+      <div class="mdc-dialog__surface">
+        <header class="mdc-dialog__header">
+          <h2 class="mdc-dialog__header__title">
+            We have a winner!
+          </h2>
+        </header>
+        <section class="mdc-dialog__body">
+          <h1 class="mdc-typography--display3" id="winner_name"></h1>
+        </section>
+        <footer class="mdc-dialog__footer">
+          <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--cancel">Close</button>
+          <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--accept">Remove winner</button>
+        </footer>
+      </div>
+      <div class="mdc-dialog__backdrop"></div>
+    </aside>
+
+    <aside id="confirmSaveDialog"
+            class="mdc-dialog"
+            role="alertdialog">
+      <div class="mdc-dialog__surface">
+        <header class="mdc-dialog__header">
+          <h2 class="mdc-dialog__header__title">
+            Confirm save
+          </h2>
+        </header>
+        <section class="mdc-dialog__body">
+          Do you want to save the names currently in the wheel on this device?
+          If you do, these names will appear whenever you return to this web
+          page.
+        </section>
+        <footer class="mdc-dialog__footer">
+          <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--cancel">Cancel</button>
+          <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--accept">OK</button>
+        </footer>
+      </div>
+      <div class="mdc-dialog__backdrop"></div>
+    </aside>
+
+    <aside id="social-media-dialog"
+            class="mdc-dialog"
+            role="alertdialog">
+    <div class="mdc-dialog__surface">
+      <header class="mdc-dialog__header">
+        <h2 class="mdc-dialog__header__title">
+          Get social media users
+        </h2>
+      </header>
+      <section class="mdc-dialog__body">
+        <div class="mdc-text-field mdc-text-field--upgraded" data-mdc-auto-init="MDCTextField">
+          <input type="text" class="mdc-text-field__input" id="search_term">
+          <label for="search_term" class="mdc-floating-label">Hashtag, like #gdg</label>
+          <div class="mdc-line-ripple" style="transform-origin: 53px center"></div>
+        </div>
+        <p>
+          This search will fetch the users who have posted recently on Twitter
+          and Google+ mentioning the search term. The most recent 200 tweets
+          and 200 Google+ posts are considered and no post older than 24 hours
+          is included. Twitter user names will start with "@". Google+ user
+          names will start with "+".
+        </p>
+      </section>
+      <footer class="mdc-dialog__footer">
+        <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--cancel">Cancel</button>
+        <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--accept">OK</button>
+      </footer>
+    </div>
+    <div class="mdc-dialog__backdrop"></div>
+  </aside>
+
+  <aside id="about-dialog"
+          class="mdc-dialog"
+          role="alertdialog">
+    <div class="mdc-dialog__surface">
+      <header class="mdc-dialog__header">
+        <h2 class="mdc-dialog__header__title">
+          About
+        </h2>
+      </header>
+      <section class="mdc-dialog__body">
+        The Google logo is the property of Google, Inc. For other uses of
+        the logo, see
+        <a target=_new href="https://www.google.com/permissions/faq.html">
+        here</a>.
+        <br/>
+        <br/>
+        The code for this web app was written by Martin Omander,
+        Google Developer Relations
+        (<a target=_new href="https://twitter.com/martinomander">Twitter profile</a>).
+        Feel free to use the app if you need to raffle off something.
+        If you like this app or have ideas for improvements, let me know!
+        <br/>
+        <br/>
+        This app runs on
+        <a target=_new href="https://cloud.google.com/appengine/">App Engine</a>,
+        Google's platform for building scalable web applications and mobile
+        backends. Just upload your code and Google will manage your app's
+        availability. There are no servers for you to provision or maintain.
+        Sweet!
+        <br/>
+        <br/>
+        To find out more about Google's developer offerings, go to
+        <a target=_new href="https://developers.google.com">developers.google.com</a>.
+        <br/>
+        <br/>
+        The sound effects were downloaded from 
+        <a target=_new href="http://soundbible.com">SoundBible.com</a> and are used
+        (unmodified) under the
+        <a target=_new href="https://creativecommons.org/licenses/by/3.0/us/">
+        Creative Commons Attribution 3.0 license</a>.
+        They have been recorded by:
+        <ul>
+          <li>Hole Punch: Simon Craggs</li>
+          <li>Tick: DeepFrozenApps</li>
+          <li>Applause: Yannick Lemieux</li>
+        </ul>
+        Version 1.3
+      </section>
+      <footer class="mdc-dialog__footer">
+        <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--accept">Close</button>
+      </footer>
+    </div>
+    <div class="mdc-dialog__backdrop"></div>
+  </aside>
+
+  <div class="mdc-snackbar">
+    <div class="mdc-snackbar__text"></div>
+    <div class="mdc-snackbar__action-wrapper">
+      <button type="button" class="mdc-snackbar__action-button"></button>
+    </div>
+  </div>
+
+  <script src="material-components-web.min.js"></script>
+  <script>mdc.autoInit()</script>
+  <script>
+    const MDCSnackbar = mdc.snackbar.MDCSnackbar;
+    const MDCDialog = mdc.dialog.MDCDialog;
+    const MDCDialogFoundation = mdc.dialog.MDCDialogFoundation;
+    const util = mdc.dialog.util;
+    var socialMediaDialog = new MDCDialog(document.querySelector('#social-media-dialog'));
+    socialMediaDialog.listen('MDCDialog:accept', function() {
+      var searchTerm = $('#search_term').val();
+      ga('send', 'event', 'Wheel', 'GetSocialMediaUsers', searchTerm);
+      fetchSocialMediaUsers(searchTerm);
+    })
+    var aboutDialog = new MDCDialog(document.querySelector('#about-dialog'));
+    var winnerDialog = new MDCDialog(document.querySelector('#winnerModal'));
+    winnerDialog.listen('MDCDialog:accept', function() {
+      ga('send', 'event', 'Wheel', 'RemoveWinner', '');
+      removeWinner();
+      myWheel.editable = true;
+    });
+    winnerDialog.listen('MDCDialog:cancel', function() {
+      myWheel.editable = true;
+    });
+    var confirmSaveDialog = new MDCDialog(document.querySelector('#confirmSaveDialog'));
+    confirmSaveDialog.listen('MDCDialog:accept', function() {
+      ga('send', 'event', 'Wheel', 'SaveNameList', '');
+      saveNameList();
+    });
+    var vc = new VisitorCounter();
+    vc.setCookie();
+    vc.getVisitorsToday().then(function(visitorMessage) {
+      document.getElementById("welcomeMessage").innerHTML = visitorMessage;
+    }, function(error) {
+      console.error(error);
+    });
+    var snackbarMessage = new MDCSnackbar(document.querySelector('.mdc-snackbar'));
+    setInterval(function() {
+      tickUpdateUI();
+    }, 1000);
+
+    //
+    // Global variables and initial drawing of the empty wheel.
+    //
+    var MAX_WHEEL_ENTRIES = 48;
+    var DEFAULT_NAMES = ['Lori', 'Sandra', 'Cameron', 'Emma', 'Susanne',
+                          'Amanda', 'Felipe', 'Shanti'];
+    var myWheel;
+    var myTextBox = new TextBox(document.getElementById('names'));
+    if (getSavedNameList()) {
+      myTextBox.setEntries(getSavedNameList());
+    }
+    else {
+      myTextBox.setEntries(DEFAULT_NAMES);
+    }
+    var audio = new Audio();
+    audio.loadSounds();
+    var imageCache = new ImageCache();
+    imageCache.loadImages().then(function() {
+      myWheel = new Wheel(document.getElementById('myCanvas'), imageCache);
+      tickUpdateUI();
+    })
+    if (!browserDoesFullscreenWell(navigator.userAgent)) {
+      document.getElementById('fullscreenButton').remove();
+    }
+
+
+    //
+    // Event handlers, triggered by the user clicking a button.
+    //
+
+    document.getElementById("myCanvas").addEventListener("click", function(ev) {
+      ga('send', 'event', 'Wheel', 'SpinByClickingCanvas', '');
+      spin();
+    })
+
+    document.getElementById("socialMediaButton").addEventListener("click", function(ev) {
+      ga('send', 'event', 'Wheel', 'ShowSocialMediaDialog', '');
+      socialMediaDialog.show()
+    })
+
+    document.getElementById("saveButton").addEventListener("click", function(ev) {
+      ga('send', 'event', 'Wheel', 'ShowSaveDialog', '');
+      confirmSaveDialog.show()
+    })
+
+    document.getElementById("aboutButton").addEventListener("click", function(ev) {
+      ga('send', 'event', 'Wheel', 'ShowAboutDialog', '');
+      aboutDialog.show()
+    })
+
+    var fullscreenButton = document.getElementById("fullscreenButton");
+      if (fullscreenButton) {
+        fullscreenButton.addEventListener("click", function(ev) {
+        if (!fullscreenOn()) {
+          ga('send', 'event', 'Wheel', 'EnterFullscreen', '');
+          turnOnFullscreen();
+        }
+        else {
+          ga('send', 'event', 'Wheel', 'ExitFullscreen', '');
+          turnOffFullscreen();
+        }
+      })
+    }
+
+    function spin() {
+      if (myWheel.hasAnyOtherNames(DEFAULT_NAMES)) {
+        var label = myWheel.names.length + ' names: ' + myWheel.names;
+        ga('send', 'event', 'Wheel', 'SpinWithCustomNames', label);
+      }
+      else {
+        ga('send', 'event', 'Wheel', 'SpinWithDefaultNames', '');
+      }
+      myWheel.editable = false;
+      myWheel.startSpin();
+      tickSpinAnimation();
+    }
+
+    function removeWinner() {
+      audio.playSound('Hole_Punch-Simon_Craggs-1910998415');
+      var winnerName = myWheel.getNameAtPointer();
+      myTextBox.removeEntry(winnerName);
+    }
+
+    function fetchSocialMediaUsers(searchTerm) {
+      setCursorAndButtonToWaitingState();
+      new SocialMediaGateway().getAllUsers(searchTerm).then(function(userNames) {
+        myTextBox.appendEntries(userNames);
+        audio.playSound('Hole_Punch-Simon_Craggs-1910998415');
+        resetCursorAndButtonFromWaitingState();
+      }, function(error) {
+        alert(error);
+        resetCursorAndButtonFromWaitingState();
+      });
+    }
+
+    function saveNameList() {
+      var entries = myTextBox.getNonBlankEntries();
+      Cookies.set('namelist', entries);
+    }
+
+    function getSavedNameList() {
+      return Cookies.getJSON('namelist');
+    }
+
+    function setCursorAndButtonToWaitingState() {
+      $('html,body,button').css('cursor', 'wait');
+      $('#get_social_media_users').prop('disabled', true);
+    }
+
+    function resetCursorAndButtonFromWaitingState() {
+      $('html,body,button').css('cursor', 'auto');
+      $('#get_social_media_users').prop('disabled', false);
+    }
+
+    function showSnackbarMessage(msg) {
+      snackbarMessage.show({message: msg, actionText: 'Close',
+                            timeout: 6000, actionHandler: function() {}});
+    }
+
+    function tickUpdateUI() {
+      var entries = myTextBox.getNonBlankEntries();
+      if (entries.length > MAX_WHEEL_ENTRIES) {
+        if (myWheel.getNumberOfNames() < MAX_WHEEL_ENTRIES) {
+          var msg = 'There are ' + entries.length + ' names in the textbox. '+
+                    'Putting ' + MAX_WHEEL_ENTRIES + ' random names in the ' +
+                    'wheel at a time, to keep them legible.'
+          showSnackbarMessage(msg);
+        }
+        myWheel.setNames(entries.getRandomElements(MAX_WHEEL_ENTRIES));
+      }
+      else {
+        myWheel.setNames(entries);
+      }
+      myWheel.draw();
+      if (fullscreenButton) {
+        if (fullscreenOn()) {
+        fullscreenButton.innerHTML = 'fullscreen_exit';
+        }
+        else {
+          fullscreenButton.innerHTML = 'fullscreen';
+        }
+      }
+    }
+
+    function tickSpinAnimation() {
+      myWheel.tick();
+      if (myWheel.changedToNewName()) {
+        audio.playSound('Tick-DeepFrozenApps-397275646');
+      }
+      myWheel.draw();
+      if (myWheel.isSpinning()) {
+        requestAnimationFrame(tickSpinAnimation);
+      }
+      else {
+        setTimeout(function() {
+          document.getElementById('winner_name').innerHTML = myWheel.getNameAtPointer();
+          winnerDialog.show();
+          audio.playSound('SMALL_CROWD_APPLAUSE-Yannick_Lemieux-1268806408');
+        }, 1000);
+      }
+    }
+  </script>
+</body>
+</html>
