@@ -1,0 +1,54 @@
+TV-441-P VPS & Continuous Improvement
+TV-4411 Production Planning & Production Control
+TV-4412 Material Management & Inventory Control
+TV-4416 Physical Logistics - AS Goods Receipt & Storage
+TV-4416 Physical Logistics - NSL
+TV-4416 Physical Logistics - AS Bahnhof
+TV-4416 Physical Logistics - AS Line Supply
+TV-4416 Physical Logistics - Body Shop
+TV-4416 Physical Logistics - Paint Shop
+TV-4416 Physical Logistics - Waste Management
+TV-4430 QMT
+TV-4430 Section Audit
+TV-4431 Planejamento
+TV-4431 Manutenção BodyShop
+TV-4431 Manutenção PaintShop
+TV-4433 BS
+TV-4433 GEO
+TV-4435 PTED
+TV-4433 MAIN 1
+TV-4433 MAIN 2
+TV-4435 PAINT LINE
+TV-4435 PVC
+TV-4435 RWK
+TV-4435 ROW
+TV-4440 – Assembly Quality
+TV-4440 – Assembly Quality Plannig
+TV-4441 – Assembly Planning
+TV-4441 – Assembly Maintenance
+TV-4441 – Assembly VPS Workshop
+TV-4442 - Assembly Trim 1 - 7
+TV-4442 - Assembly Trim 8 - 13 + Cockpit
+TV-4443 - Assembly Trim 14 - 17 + Doors
+TV-4443 - Assembly OH
+TV-4443 - Assembly Final Line
+TV-4444 - Assembly F1-F2
+TV-4444 - Assembly Rework
+TV-450 Change Management
+TV-4450 QMS / PMP / QP
+TV-4450 Product Audit
+TV-4451 Analysis
+TV-4451 TWA
+PA-44 Facilities Management
+PA-44 Security and Fire Protection
+PA-44 Enviromental Protection
+PM-40-BR-1 HR Management
+PM-40-BR-2 HR Services
+PM-40-BR-S HR Planning and Steering
+FG-AM-45 IT
+PZ-AM-G-BR Safety
+PZ-AM-G-BR Health
+PZ-AM-G-BR Foods/Gastronomy
+MN-BR QMT
+MN-BR Indirect Material
+MN-BR Direct Material
